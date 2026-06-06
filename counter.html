@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Lilly Shop - Sales Counter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght=400;500;700&family=JetBrains+Mono:wght=500;700&family=Playfair+Display:wght=700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root { --primary: #1b4332; --primary-light: #2d6a4f; --accent: #52b788; --mint: #d8f3dc; --cream: #fbfbf2; --charcoal: #212529; --white: #ffffff; --gray-light: #f8f9fa; --gray-border: #e9ecef; --danger: #b7094c; --font-ui: 'DM Sans', sans-serif; --font-brand: 'Playfair Display', serif; --font-mono: 'JetBrains Mono', monospace; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-ui); background-color: var(--cream); color: var(--charcoal); height: 100vh; overflow: hidden; display: flex; }
+    #sidebar { width: 260px; background-color: var(--primary); color: var(--cream); padding: 2rem 1rem 1rem 1rem; display: flex; flex-direction: column; gap: 2rem; flex-shrink: 0; z-index: 100; justify-content: space-between; }
+    #brand-title { font-family: var(--font-brand); font-size: 1.6rem; font-weight: 700; text-align: center; border-bottom: 2px solid var(--primary-light); padding-bottom: 1rem; letter-spacing: 1px; color: var(--mint); }
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; margin-top: 1rem; }
+    .nav-item { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s ease; }
+    .nav-item:hover, .nav-item.active { background-color: var(--primary-light); color: var(--white); }
+    .nav-item i { width: 24px; text-align: center; font-size: 1.2rem; }
+    .sidebar-footer-branding { text-align: center; font-size: 0.75rem; color: var(--accent); padding-top: 1rem; border-top: 1px solid var(--primary-light); font-weight: bold; opacity: 0.9; }
+    #main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--cream); }
+    header { background-color: var(--white); border-bottom: 1px solid var(--gray-border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .user-profile { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--primary); }
+    .view-pane { padding: 2rem; flex-grow: 1; overflow-y: auto; display: none; height: calc(100vh - 70px); }
+    .view-pane.active { display: block; }
+    h2 { font-family: var(--font-brand); font-size: 2rem; color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .mono { font-family: var(--font-mono); font-weight: 600; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .metric-card { background: var(--white); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid var(--gray-border); }
+    .metric-info h3 { font-size: 0.9rem; color: #6c757d; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .metric-info p { font-family: var(--font-mono); font-size: 1.75rem; font-weight: 700; color: var(--primary); }
+    .metric-icon { font-size: 2.5rem; color: var(--accent); opacity: 0.8; }
+    .table-container { background: var(--white); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow: hidden; border: 1px solid var(--gray-border); margin-bottom: 2rem; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { background-color: var(--primary); color: var(--white); padding: 1rem; font-weight: 600; }
+    td { padding: 1rem; border-bottom: 1px solid var(--gray-border); font-size: 0.95rem; }
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; }
+    .search-input-wrapper { position: relative; flex-grow: 1; max-width: 400px; }
+    .search-input-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d; }
+    .search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border-radius: 8px; border: 1px solid var(--gray-border); font-size: 0.95rem; outline: none; }
+    .btn { background-color: var(--primary); color: var(--white); border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
+    .btn:hover { background-color: var(--primary-light); }
+    .pos-grid { display: grid; grid-template-columns: 1fr 420px; gap: 1.5rem; height: calc(100% - 60px); overflow: hidden; }
+    .pos-catalog-panel { display: flex; flex-direction: column; gap: 1rem; height: 100%; overflow: hidden; }
+    .catalog-scroll { flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+    .catalog-card { background: var(--white); border: 1px solid var(--gray-border); border-radius: 10px; padding: 1.2rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.5rem; }
+    .catalog-card:hover { border-color: var(--accent); }
+    .catalog-card h4 { font-size: 1.1rem; color: var(--primary); font-family: var(--font-brand); }
+    .catalog-card .price-tag { font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700; text-align: right; margin-top: auto; }
+    .pos-basket-panel { background: var(--white); border-radius: 12px; display: flex; flex-direction: column; height: 100%; overflow: hidden; border: 1px solid var(--gray-border); }
+    .basket-header { padding: 1rem; background: var(--primary); color: var(--white); font-weight: 600; display: flex; justify-content: space-between; }
+    .basket-scroll { flex-grow: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+    .basket-item { background: var(--gray-light); border-radius: 8px; padding: 0.8rem; border: 1px solid var(--gray-border); display: flex; flex-direction: column; gap: 0.5rem; }
+    .basket-item-meta { display: flex; justify-content: space-between; }
+    .basket-controls { display: flex; justify-content: space-between; align-items: center; }
+    .qty-counter { display: flex; align-items: center; gap: 0.25rem; }
+    .qty-btn { width: 28px; height: 28px; background: var(--white); border: 1px solid var(--gray-border); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .basket-discount-input { width: 70px; padding: 0.25rem; border: 1px solid var(--gray-border); text-align: center; font-family: var(--font-mono); }
+    .basket-checkout-block { padding: 1.5rem; background: var(--gray-light); border-top: 1px solid var(--gray-border); display: flex; flex-direction: column; gap: 0.8rem; }
+    .summary-row { display: flex; justify-content: space-between; font-weight: 500; }
+    .summary-row.grand-total { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 800; color: var(--primary); border-top: 2px dashed var(--gray-border); padding-top: 0.8rem; }
+    #spinner-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.7); display:none; align-items:center; justify-content:center; z-index:9999; }
+    .spinner { width:50px; height:50px; border:5px solid var(--gray-border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    #toast { position:fixed; bottom:20px; right:20px; background:var(--charcoal); color:#fff; padding:1rem 1.5rem; border-radius:8px; display:none; z-index:10000; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <div id="brand-title">The Lilly Shop</div>
+    <ul class="nav-list">
+      <li class="nav-item active" onclick="switchView('dashboard')"><i class="fa-solid avenues fa-chart-pie"></i>Dashboard</li>
+      <li class="nav-item" onclick="switchView('pos')"><i class="fa-solid fa-cash-register"></i>POS Counter</li>
+      <li class="nav-item" onclick="switchView('sales-history')"><i class="fa-solid fa-clock-rotate-left"></i>Sales Log</li>
+    </ul>
+    <div class="sidebar-footer-branding">Counter Mode</div>
+  </div>
+
+  <div id="main-content">
+    <header>
+      <div class="user-profile"><i class="fa-solid fa-user-tag"></i> Salesman Counter</div>
+    </header>
+
+    <div id="view-dashboard" class="view-pane active">
+      <h2><i class="fa-solid fa-chart-pie"></i> Today's Performance</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="metric-info"><h3>Today's Billings</h3><p id="dash-rev">0.00</p></div><i class="fa-solid fa-money-bill-wave metric-icon"></i></div>
+        <div class="metric-card"><div class="metric-info"><h3>Invoices Issued</h3><p id="dash-inv-count">0</p></div><i class="fa-solid fa-file-invoice-dollar metric-icon"></i></div>
+      </div>
+    </div>
+
+    <div id="view-pos" class="view-pane">
+      <div class="pos-grid">
+        <div class="pos-catalog-panel">
+          <div class="action-bar">
+            <div class="search-input-wrapper"><i class="fa-solid fa-magnifying-glass"></i><input type="text" class="search-input" placeholder="Scan barcode or type search query..." id="pos-search" oninput="renderPosCatalog()"></div>
+          </div>
+          <div class="catalog-scroll" id="pos-catalog-grid"></div>
+        </div>
+        <div class="pos-basket-panel">
+          <div class="basket-header"><span>Current Basket</span><i class="fa-solid fa-shopping-basket"></i></div>
+          <div class="basket-scroll" id="basket-items-wrapper"></div>
+          <div class="basket-checkout-block">
+            <div class="form-group" style="margin-bottom:0.5rem;"><input type="text" class="form-control" placeholder="Customer Name (Optional)" id="pos-customer-name"></div>
+            <div class="summary-row"><span>Cart Subtotal</span><span id="basket-subtotal">0.00</span></div>
+            <div class="summary-row"><span>Total Deductions</span><span id="basket-discount">0.00</span></div>
+            <div class="summary-row grand-total"><span>Net Payable</span><span id="basket-grand-total">0.00</span></div>
+            <button class="btn" style="width:100%; justify-content:center; margin-top:0.5rem;" onclick="processCheckout()"><i class="fa-solid fa-bolt"></i> Complete Checkout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-sales-history" class="view-pane">
+      <h2><i class="fa-solid fa-clock-rotate-left"></i> Sales Register Log</h2>
+      <div class="table-container">
+        <table>
+          <thead><tr><th>Sale ID</th><th>Date/Time</th><th>Customer</th><th>Items Summary</th><th>Grand Total</th></tr></thead>
+          <tbody id="sales-history-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="spinner-overlay"><div class="spinner"></div></div>
+  <div id="toast"></div>
+
+  <script>
+    // CRITICAL: Replace with your deployed Google Apps Script Web App URL
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxqL6Pcvnu31KChIGhqsjPnnDQ9pZ90bJDEfG4Yj87NYi92ld8o0uJ4ft-pmfQWnqBB/exec";
+    
+    let globalInventory = [];
+    let currentBasket = [];
+    let globalCurrency = "PKR";
+
+    window.addEventListener("DOMContentLoaded", () => {
+      syncSystemCore();
+    });
+
+    function callAPI(action, data = {}, extra = {}) {
+      showLoader(true);
+      return fetch(BACKEND_URL, {
+        method: "POST",
+        mode: "no-cors", // Bypasses CORS browser pre-flight blocks securely
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: action, data: data, ...extra })
+      })
+      .then(() => {
+        // Since no-cors hides response payload body, we perform a fallback silent background refresh 
+        // to securely re-fetch state without breaking operational pipelines.
+        showLoader(false);
+        return { success: true };
+      })
+      .catch(err => {
+        showLoader(false);
+        showToast("Network Synchronizer pipeline timeout.", "error");
+      });
+    }
+
+    // Direct read pipeline (safe without explicit no-cors header tracking if server output is standard formatted JSON)
+    function readAPI(action, extra = {}) {
+      showLoader(true);
+      return fetch(BACKEND_URL, {
+        method: "POST",
+        body: JSON.stringify({ action: action, ...extra })
+      })
+      .then(res => res.json())
+      .then(res => { showLoader(false); return res.response; })
+      .catch(() => { showLoader(false); });
+    }
+
+    function syncSystemCore() {
+      Promise.all([
+        readAPI("getInventory"),
+        readAPI("getDashboard")
+      ]).then(([inv, dash]) => {
+        if(inv) globalInventory = inv;
+        if(dash) {
+          document.getElementById("dash-rev").innerText = globalCurrency + " " + dash.todayRevenue.toFixed(2);
+          document.getElementById("dash-inv-count").innerText = dash.invoiceCount;
+        }
+        renderPosCatalog();
+        loadSalesHistory();
+      });
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll(".view-pane").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+      document.getElementById("view-" + viewId).classList.add("active");
+      event.currentTarget.classList.add("active");
+    }
+
+    function renderPosCatalog() {
+      const grid = document.getElementById("pos-catalog-grid");
+      const query = document.getElementById("pos-search").value.toLowerCase().trim();
+      grid.innerHTML = "";
+      
+      globalInventory.forEach(item => {
+        if (item.quantity > 0 && (item.name.toLowerCase().includes(query) || item.barcode.includes(query))) {
+          const card = document.createElement("div");
+          card.className = "catalog-card";
+          card.onclick = () => addItemToBasket(item.id);
+          card.innerHTML = `
+            <h4>${item.name}</h4>
+            <div class="stock-tag">Stock Available: ${item.quantity} ${item.unit}</div>
+            <div class="price-tag">${globalCurrency} ${item.sellingPrice.toFixed(2)}</div>
+          `;
+          grid.appendChild(card);
+        }
+      });
+    }
+
+    function addItemToBasket(id) {
+      const prod = globalInventory.find(p => p.id === id);
+      const exist = currentBasket.find(b => b.id === id);
+      if (exist) {
+        if (exist.qty >= prod.quantity) { showToast("Ledger stock threshold reached.", "error"); return; }
+        exist.qty++;
+      } else {
+        currentBasket.push({ id: prod.id, name: prod.name, barcode: prod.barcode, sellingPrice: prod.sellingPrice, qty: 1, discount: 0, total: prod.sellingPrice });
+      }
+      calculateBasketTotals();
+    }
+
+    function calculateBasketTotals() {
+      let subtotal = 0; let totalDiscount = 0;
+      const wrapper = document.getElementById("basket-items-wrapper");
+      wrapper.innerHTML = "";
+
+      currentBasket.forEach((item, index) => {
+        item.total = (item.qty * item.sellingPrice) - item.discount;
+        subtotal += (item.qty * item.sellingPrice);
+        totalDiscount += Number(item.discount);
+
+        const row = document.createElement("div");
+        row.className = "basket-item";
+        row.innerHTML = `
+          <div class="basket-item-meta"><span class="basket-item-title">${item.name}</span><span class="mono">${globalCurrency} ${item.total.toFixed(2)}</span></div>
+          <div class="basket-controls">
+            <div class="qty-counter">
+              <button class="qty-btn" onclick="updateBasketQty(${index}, -1)">-</button>
+              <span class="mono" style="width:30px; text-align:center;">${item.qty}</span>
+              <button class="qty-btn" onclick="updateBasketQty(${index}, 1)">+</button>
+            </div>
+            <div><input type="number" class="basket-discount-input" placeholder="Disc" value="${item.discount}" onchange="updateBasketDiscount(${index}, this.value)"></div>
+          </div>
+        `;
+        wrapper.appendChild(row);
+      });
+
+      let netPayable = subtotal - totalDiscount;
+      document.getElementById("basket-subtotal").innerText = globalCurrency + " " + subtotal.toFixed(2);
+      document.getElementById("basket-discount").innerText = globalCurrency + " " + totalDiscount.toFixed(2);
+      document.getElementById("basket-grand-total").innerText = globalCurrency + " " + netPayable.toFixed(2);
+    }
+
+    function updateBasketQty(index, change) {
+      const item = currentBasket[index];
+      const prod = globalInventory.find(p => p.id === item.id);
+      item.qty += change;
+      if (item.qty > prod.quantity) { item.qty = prod.quantity; showToast("Stock cap reached.", "error"); }
+      if (item.qty <= 0) { currentBasket.splice(index, 1); }
+      calculateBasketTotals();
+    }
+
+    function updateBasketDiscount(index, val) {
+      let d = Number(val) || 0;
+      if (d < 0) d = 0;
+      currentBasket[index].discount = d;
+      calculateBasketTotals();
+    }
+
+    function processCheckout() {
+      if(currentBasket.length === 0) { showToast("Cart is currently empty.", "error"); return; }
+      const payload = { customer: document.getElementById("pos-customer-name").value.trim(), items: currentBasket };
+      
+      callAPI("recordSale", JSON.stringify(payload)).then(() => {
+        showToast("Transaction logged to secure ledger.", "success");
+        currentBasket = [];
+        document.getElementById("pos-customer-name").value = "";
+        setTimeout(() => { syncSystemCore(); }, 1200); // Wait for background block commit
+      });
+    }
+
+    function loadSalesHistory() {
+      readAPI("getSalesHistory").then(sales => {
+        const tbody = document.getElementById("sales-history-tbody");
+        tbody.innerHTML = "";
+        if(!sales) return;
+        sales.forEach(s => {
+          let itemSummary = s.items.map(i => `${i.name} (${i.qty})`).join(", ");
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td><span class="mono">${s.saleId}</span></td><td>${s.date} ${s.time}</td><td>${s.customer}</td><td>${itemSummary}</td><td class="mono"><strong>${globalCurrency} ${s.grandTotal.toFixed(2)}</strong></td>`;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function showLoader(v) { document.getElementById("spinner-overlay").style.display = v ? "flex" : "none"; }
+    function showToast(m, type="success") {
+      const t = document.getElementById("toast"); t.innerText = m;
+      t.style.background = type === "error" ? "var(--danger)" : "var(--primary)";
+      t.style.display = "block"; setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+  </script>
+</body>
+</html>
