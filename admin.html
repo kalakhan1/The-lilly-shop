@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Lilly Shop - Administrator Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght=400;500;700&family=JetBrains+Mono:wght=500;700&family=Playfair+Display:wght=700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Complete Original Theme Styling Array Variables integrated securely */
+    :root { --primary: #1b4332; --primary-light: #2d6a4f; --accent: #52b788; --mint: #d8f3dc; --cream: #fbfbf2; --charcoal: #212529; --white: #ffffff; --gray-light: #f8f9fa; --gray-border: #e9ecef; --danger: #b7094c; --font-ui: 'DM Sans', sans-serif; --font-brand: 'Playfair Display', serif; --font-mono: 'JetBrains Mono', monospace; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-ui); background-color: var(--cream); color: var(--charcoal); height: 100vh; overflow: hidden; display: flex; }
+    #sidebar { width: 260px; background-color: var(--primary); color: var(--cream); padding: 2rem 1rem 1rem 1rem; display: flex; flex-direction: column; gap: 2rem; flex-shrink: 0; justify-content: space-between; }
+    #brand-title { font-family: var(--font-brand); font-size: 1.6rem; font-weight: 700; text-align: center; border-bottom: 2px solid var(--primary-light); padding-bottom: 1rem; letter-spacing: 1px; color: var(--mint); }
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1; margin-top: 1rem; }
+    .nav-item { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s ease; }
+    .nav-item:hover, .nav-item.active { background-color: var(--primary-light); color: var(--white); }
+    .nav-item i { width: 24px; text-align: center; font-size: 1.2rem; }
+    #main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--cream); }
+    header { background-color: var(--white); border-bottom: 1px solid var(--gray-border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .view-pane { padding: 2rem; flex-grow: 1; overflow-y: auto; display: none; height: calc(100vh - 70px); }
+    .view-pane.active { display: block; }
+    h2 { font-family: var(--font-brand); font-size: 2rem; color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .mono { font-family: var(--font-mono); font-weight: 600; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .metric-card { background: var(--white); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--gray-border); }
+    .metric-info h3 { font-size: 0.9rem; color: #6c757d; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .metric-info p { font-family: var(--font-mono); font-size: 1.75rem; font-weight: 700; color: var(--primary); }
+    .metric-icon { font-size: 2.5rem; color: var(--accent); opacity: 0.8; }
+    .table-container { background: var(--white); border-radius: 12px; overflow: hidden; border: 1px solid var(--gray-border); margin-bottom: 2rem; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { background-color: var(--primary); color: var(--white); padding: 1rem; font-weight: 600; }
+    td { padding: 1rem; border-bottom: 1px solid var(--gray-border); font-size: 0.95rem; }
+    .btn { background-color: var(--primary); color: var(--white); border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .btn-danger { background-color: var(--danger); }
+    .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; display: none; }
+    .modal-card { background: var(--white); width: 100%; max-width: 600px; border-radius: 12px; overflow: hidden; }
+    .modal-header { background: var(--primary); color: var(--white); padding: 1.2rem 1.5rem; font-family: var(--font-brand); font-size: 1.25rem; display: flex; justify-content: space-between; }
+    .modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-control { padding: 0.7rem; border-radius: 6px; border: 1px solid var(--gray-border); outline: none; }
+    #spinner-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.7); display:none; align-items:center; justify-content:center; z-index:9999; }
+    .spinner { width:50px; height:50px; border:5px solid var(--gray-border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    #toast { position:fixed; bottom:20px; right:20px; background:var(--charcoal); color:#fff; padding:1rem 1.5rem; border-radius:8px; display:none; z-index:10000; }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <div id="brand-title">The Lilly Shop</div>
+    <ul class="nav-list">
+      <li class="nav-item active" onclick="switchView('admin-dash')"><i class="fa-solid fa-chart-pie"></i>Admin Dashboard</li>
+      <li class="nav-item" onclick="switchView('sales-ledger')"><i class="fa-solid fa-file-invoice-dollar"></i>Sales Ledger Management</li>
+    </ul>
+    <div class="sidebar-footer-branding">Administrator Control</div>
+  </div>
+
+  <div id="main-content">
+    <header>
+      <div class="user-profile"><i class="fa-solid fa-user-shield"></i> Master Control Panel</div>
+    </header>
+
+    <div id="view-admin-dash" class="view-pane active">
+      <h2><i class="fa-solid fa-chart-pie"></i> Enterprise Analytics Overview</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="metric-info"><h3>Total Valuation Asset</h3><p id="adm-val">0.00</p></div><i class="fa-solid fa-boxes-stacked metric-icon"></i></div>
+        <div class="metric-card"><div class="metric-info"><h3>Total Stock SKUs</h3><p id="adm-skus">0</p></div><i class="fa-solid fa-tags metric-icon"></i></div>
+      </div>
+    </div>
+
+    <div id="view-sales-ledger" class="view-pane">
+      <h2><i class="fa-solid fa-file-invoice-dollar"></i> Master Transactions Ledger</h2>
+      <div class="table-container">
+        <table>
+          <thead><tr><th>Sale ID</th><th>Date/Time</th><th>Customer Name</th><th>Net Asset Value</th><th>Administrative Actions</th></tr></thead>
+          <tbody id="master-ledger-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="edit-sale-modal">
+    <div class="modal-card">
+      <div class="modal-header"><span>Update Transaction Matrix</span><span onclick="closeModal('edit-sale-modal')" style="cursor:pointer;">&times;</span></div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-sale-id">
+        <div class="form-group"><label>Customer Identity</label><input type="text" class="form-control" id="edit-sale-customer"></div>
+        <div id="edit-sale-items-container" style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;"></div>
+      </div>
+      <div style="padding:1rem 1.5rem; background:var(--gray-light); display:flex; justify-content:flex-end; gap:0.5rem;">
+        <button class="btn btn-danger" onclick="executeVoidSale()"><i class="fa-solid fa-trash-can"></i> Void Invoice</button>
+        <button class="btn" onclick="submitSaleModifications()"><i class="fa-solid fa-save"></i> Apply Adjustments</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="spinner-overlay"><div class="spinner"></div></div>
+  <div id="toast"></div>
+
+  <script>
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxqL6Pcvnu31KChIGhqsjPnnDQ9pZ90bJDEfG4Yj87NYi92ld8o0uJ4ft-pmfQWnqBB/exec";
+    let salesCache = [];
+    let currencySymbol = "PKR";
+
+    window.addEventListener("DOMContentLoaded", () => { refreshAdminConsole(); });
+
+    function callAPI(action, data = {}, extra = {}) {
+      showLoader(true);
+      return fetch(BACKEND_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: action, data: data, ...extra })
+      }).then(() => { showLoader(false); return { success: true }; });
+    }
+
+    function readAPI(action, extra = {}) {
+      showLoader(true);
+      return fetch(BACKEND_URL, { method: "POST", body: JSON.stringify({ action: action, ...extra }) })
+      .then(res => res.json()).then(res => { showLoader(false); return res.response; });
+    }
+
+    function refreshAdminConsole() {
+      Promise.all([
+        readAPI("getDashboard"),
+        readAPI("getSalesHistory")
+      ]).then(([dash, sales]) => {
+        if(dash) {
+          document.getElementById("adm-val").innerText = currencySymbol + " " + dash.stockValuation.toFixed(2);
+          document.getElementById("adm-skus").innerText = dash.totalProducts;
+        }
+        if(sales) {
+          salesCache = sales;
+          renderMasterLedger();
+        }
+      });
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll(".view-pane").forEach(p => p.classList.remove("active"));
+      document.getElementById("view-" + viewId).classList.add("active");
+    }
+
+    function renderMasterLedger() {
+      const tbody = document.getElementById("master-ledger-tbody"); tbody.innerHTML = "";
+      salesCache.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span class="mono">${s.saleId}</span></td>
+          <td>${s.date} ${s.time}</td>
+          <td>${s.customer}</td>
+          <td class="mono"><strong>${currencySymbol} ${s.grandTotal.toFixed(2)}</strong></td>
+          <td><button class="btn" onclick="openEditSaleModal('${s.saleId}')"><i class="fa-solid fa-sliders"></i> Modify Entry</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openEditSaleModal(saleId) {
+      const s = salesCache.find(x => x.saleId === saleId);
+      document.getElementById("edit-sale-id").value = saleId;
+      document.getElementById("edit-sale-customer").value = s.customer;
+      
+      const container = document.getElementById("edit-sale-items-container");
+      container.innerHTML = "<h5>Products Audit Tracking</h5>";
+      
+      s.items.forEach((item, idx) => {
+        const block = document.createElement("div");
+        block.style = "display:grid; grid-template-columns: 2fr 1fr 1fr; gap:0.5rem; align-items:center;";
+        block.innerHTML = `
+          <span style="font-weight:600;">${item.name}</span>
+          <input type="number" class="form-control edit-item-qty" data-id="${item.id}" value="${item.qty}" title="Quantity">
+          <input type="number" class="form-control edit-item-disc" data-id="${item.id}" value="${item.discount}" title="Discount">
+        `;
+        container.appendChild(block);
+      });
+      document.getElementById("edit-sale-modal").style.display = "flex";
+    }
+
+    function submitSaleModifications() {
+      const saleId = document.getElementById("edit-sale-id").value;
+      const customer = document.getElementById("edit-sale-customer").value;
+      const updatedItems = [];
+      
+      document.querySelectorAll("#edit-sale-items-container div").forEach(row => {
+        const qInput = row.querySelector(".edit-item-qty");
+        const dInput = row.querySelector(".edit-item-disc");
+        updatedItems.push({
+          id: qInput.getAttribute("data-id"),
+          qty: Number(qInput.value),
+          discount: Number(dInput.value)
+        });
+      });
+
+      callAPI("updateSale", {}, { saleId: saleId, customerName: customer, updatedItemsStr: JSON.stringify(updatedItems) }).then(() => {
+        showToast("Ledger structural adjustments written securely.", "success");
+        closeModal("edit-sale-modal");
+        setTimeout(() => { refreshAdminConsole(); }, 1200);
+      });
+    }
+
+    function executeVoidSale() {
+      if(!confirm("Are you absolutely sure you want to completely void this transaction record? This restores original inventory volumes.")) return;
+      const saleId = document.getElementById("edit-sale-id").value;
+      callAPI("voidSale", {}, { saleId: saleId }).then(() => {
+        showToast("Invoice voided, financial ledger rolled back.", "success");
+        closeModal("edit-sale-modal");
+        setTimeout(() => { refreshAdminConsole(); }, 1200);
+      });
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = "none"; }
+    function showLoader(v) { document.getElementById("spinner-overlay").style.display = v ? "flex" : "none"; }
+    function showToast(m, type="success") {
+      const t = document.getElementById("toast"); t.innerText = m;
+      t.style.background = type === "error" ? "var(--danger)" : "var(--primary)";
+      t.style.display = "block"; setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+  </script>
+</body>
+</html>
