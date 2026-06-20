@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Lilly Shop - Enterprise Admin Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght=400;500;700&family=JetBrains+Mono:wght=500;700&family=Playfair+Display:wght=700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root { --primary: #1b4332; --primary-light: #2d6a4f; --accent: #52b788; --mint: #d8f3dc; --cream: #fbfbf2; --charcoal: #212529; --white: #ffffff; --gray-light: #f8f9fa; --gray-border: #e9ecef; --danger: #b7094c; --font-ui: 'DM Sans', sans-serif; --font-brand: 'Playfair Display', serif; --font-mono: 'JetBrains Mono', monospace; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-ui); background-color: var(--cream); color: var(--charcoal); height: 100vh; overflow: hidden; display: flex; }
+    body.rtl { direction: rtl; }
+    #sidebar { width: 260px; background-color: var(--primary); color: var(--cream); padding: 2rem 1rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.4rem; flex-shrink: 0; z-index: 100; justify-content: space-between; }
+    #brand-title { font-family: var(--font-brand); font-size: 1.6rem; font-weight: 700; text-align: center; border-bottom: 2px solid var(--primary-light); padding-bottom: 1rem; letter-spacing: 1px; color: var(--mint); margin-bottom: 1rem; }
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; flex-grow: 1; }
+    .nav-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.2s ease; }
+    .nav-item:hover, .nav-item.active { background-color: var(--primary-light); color: var(--white); }
+    .nav-item i { width: 24px; text-align: center; font-size: 1.1rem; }
+    body.rtl .nav-item i { margin-left: 0.5rem; margin-right: 0; }
+    .sidebar-footer-branding { text-align: center; font-size: 0.75rem; color: var(--accent); padding-top: 1rem; border-top: 1px solid var(--primary-light); font-weight: bold; }
+    #main-content { flex-grow: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; background-color: var(--cream); }
+    header { background-color: var(--white); border-bottom: 1px solid var(--gray-border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .user-profile { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--primary); }
+    .lang-switcher { padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid var(--gray-border); background: var(--white); font-family: var(--font-ui); font-weight: 600; color: var(--primary); cursor: pointer; outline: none; }
+    .view-pane { padding: 2rem; flex-grow: 1; overflow-y: auto; display: none; height: calc(100vh - 70px); }
+    .view-pane.active { display: block; }
+    h2 { font-family: var(--font-brand); font-size: 2rem; color: var(--primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .mono { font-family: var(--font-mono); font-weight: 600; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .metric-card { background: var(--white); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid var(--gray-border); }
+    .metric-info h3 { font-size: 0.9rem; color: #6c757d; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .metric-info p { font-family: var(--font-mono); font-size: 1.75rem; font-weight: 700; color: var(--primary); }
+    .metric-icon { font-size: 2.5rem; color: var(--accent); opacity: 0.8; }
+    .table-container { background: var(--white); border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); overflow: hidden; border: 1px solid var(--gray-border); margin-bottom: 2rem; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    body.rtl table { text-align: right; }
+    th { background-color: var(--primary); color: var(--white); padding: 1rem; font-weight: 600; }
+    td { padding: 1rem; border-bottom: 1px solid var(--gray-border); font-size: 0.95rem; vertical-align: middle; }
+    tr:hover td { background-color: var(--gray-light); }
+    .alert-badge { background-color: #fff0f3; color: var(--danger); font-weight: bold; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.85rem; border: 1px solid #ffccd5; }
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap; }
+    .search-input-wrapper { position: relative; flex-grow: 1; max-width: 400px; }
+    .search-input-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #6c757d; }
+    body.rtl .search-input-wrapper i { left: auto; right: 12px; }
+    .search-input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.5rem; border-radius: 8px; border: 1px solid var(--gray-border); font-size: 0.95rem; outline: none; }
+    body.rtl .search-input { padding: 0.75rem 2.5rem 0.75rem 1rem; }
+    .btn { background-color: var(--primary); color: var(--white); border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; }
+    .btn:hover { background-color: var(--primary-light); }
+    .btn-danger { background-color: var(--danger); }
+    .btn-danger:hover { background-color: #800f2f; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--primary); font-size: 0.9rem; }
+    .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--gray-border); border-radius: 8px; outline: none; font-family: var(--font-ui); font-size: 0.95rem; }
+    .form-control:focus { border-color: var(--primary); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    #loader-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(27,67,50,0.4); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 9999; }
+    .spinner { width: 50px; height: 50px; border: 5px solid var(--mint); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #toast { position: fixed; bottom: 2rem; right: 2rem; background: #212529; color: #fff; padding: 1rem 2rem; border-radius: 8px; font-weight: 500; display: none; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    body.rtl #toast { right: auto; left: 2rem; }
+    .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 2000; }
+    .modal-content { background: var(--white); border-radius: 12px; padding: 2rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .modal-close { cursor: pointer; font-size: 1.25rem; color: #6c757d; }
+    .report-card { background: #fff; border: 1px solid var(--gray-border); border-radius: 12px; padding: 1.5rem; margin-top: 1.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <div id="brand-title">The Lilly Shop</div>
+    <ul class="nav-list">
+      <li class="nav-item active" onclick="switchView('dashboard')" data-lang="nav_dashboard"><i class="fa-solid fa-chart-pie"></i>Dashboard</li>
+      <li class="nav-item" onclick="switchView('inventory')" data-lang="nav_inventory"><i class="fa-solid fa-boxes-stacked"></i>Inventory Engine</li>
+      <li class="nav-item" onclick="switchView('sales')" data-lang="nav_sales"><i class="fa-solid fa-history"></i>Sales Ledger</li>
+      <li class="nav-item" onclick="switchView('purchases')" data-lang="nav_purchases"><i class="fa-solid fa-truck-ramp-box"></i>Procurement</li>
+      <li class="nav-item" onclick="switchView('reports')" data-lang="nav_reports"><i class="fa-solid fa-file-invoice"></i>Analytics Hub</li>
+      <li class="nav-item" onclick="switchView('settings')" data-lang="nav_settings"><i class="fa-solid fa-sliders"></i>System Config</li>
+    </ul>
+    <div class="sidebar-footer-branding" data-lang="sidebar_footer">ADMIN EXECUTIVE PANEL</div>
+  </div>
+
+  <div id="main-content">
+    <header>
+      <div class="user-profile"><i class="fa-solid fa-user-shield"></i> <span id="shop-name-banner">Admin Console</span></div>
+      <div>
+        <select class="lang-switcher" onchange="toggleLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="ur">اردو</option>
+        </select>
+      </div>
+    </header>
+
+    <div id="view-dashboard" class="view-pane active">
+      <h2 data-lang="dash_title"><i class="fa-solid fa-chart-pie"></i> Executive Overview</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><div class="metric-info"><h3 data-lang="card_sku">Total SKU Variants</h3><p id="dash-variants">0</p></div><i class="fa-solid fa-box metric-icon"></i></div>
+        <div class="metric-card"><div class="metric-info"><h3 data-lang="card_valuation">Stock Capital Valuation</h3><p id="dash-valuation">PKR 0.00</p></div><i class="fa-solid fa-vault metric-icon"></i></div>
+        <div class="metric-card"><div class="metric-info"><h3 data-lang="card_revenue">Today Sales Revenue</h3><p id="dash-revenue">PKR 0.00</p></div><i class="fa-solid fa-chart-line metric-icon"></i></div>
+        <div class="metric-card"><div class="metric-info"><h3 data-lang="card_invoices">Invoices Issued Today</h3><p id="dash-invoices">0</p></div><i class="fa-solid fa-file-receipt metric-icon"></i></div>
+      </div>
+      <h2 data-lang="dash_alerts_title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> Stock Depletion Alerts</h2>
+      <div class="table-container">
+        <table>
+          <thead><tr><th data-lang="th_prod_id">Product ID</th><th data-lang="th_desc">Product Description</th><th data-lang="th_curr_stock">Current Stock</th><th data-lang="th_threshold">Threshold Limit</th></tr></thead>
+          <tbody id="dash-lowstock-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="view-inventory" class="view-pane">
+      <h2 data-lang="inv_title"><i class="fa-solid fa-boxes-stacked"></i> Core Product Inventory Matrix</h2>
+      <div class="action-bar">
+        <div class="search-input-wrapper"><i class="fa-solid fa-search"></i><input type="text" class="search-input" id="inv-search" placeholder="Filter inventory..." oninput="filterInventory()" data-lang-placeholder="ph_filter_inv"></div>
+        <button class="btn" onclick="openProductModal()" data-lang="btn_append_sku"><i class="fa-solid fa-plus"></i> Append New SKU Record</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead><tr><th data-lang="th_sku_id">SKU ID</th><th data-lang="th_barcode">Barcode</th><th data-lang="th_prod_name">Product Name</th><th data-lang="th_cat">Category</th><th data-lang="th_purchase">Purchase</th><th data-lang="th_selling">Selling</th><th data-lang="th_stock">Stock</th><th data-lang="th_status">Status</th><th data-lang="th_actions">Actions</th></tr></thead>
+          <tbody id="inv-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="view-sales" class="view-pane">
+      <h2 data-lang="sales_title"><i class="fa-solid fa-history"></i> Global Sales Transaction Log</h2>
+      <div class="action-bar">
+        <div class="search-input-wrapper"><i class="fa-solid fa-search"></i><input type="text" class="search-input" id="sales-search" placeholder="Search sales..." oninput="filterSales()" data-lang-placeholder="ph_search_sales"></div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead><tr><th data-lang="th_inv_id">Invoice ID</th><th data-lang="th_timestamp">Timestamp</th><th data-lang="th_client">Client Descriptor</th><th data-lang="th_items">Items Bundle</th><th data-lang="th_grand_cost">Grand Cost</th><th data-lang="th_mgmt_actions">Management Actions</th></tr></thead>
+          <tbody id="sales-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="view-purchases" class="view-pane">
+      <h2 data-lang="proc_title"><i class="fa-solid fa-truck-ramp-box"></i> Stock Procurement Intake</h2>
+      <div class="modal-content" style="box-shadow:none; padding:0; max-width:100%;">
+        <form id="purchase-form" onsubmit="submitPurchase(event)">
+          <div class="grid-2">
+            <div class="form-group"><label data-lang="lbl_target_sku">Select Target SKU Product</label><select class="form-control" id="pch-product-id" required></select></div>
+            <div class="form-group"><label data-lang="lbl_supplier">Supplier Channel / Vendor</label><input type="text" class="form-control" id="pch-supplier" placeholder="Vendor Profile" data-lang-placeholder="ph_vendor_prof"></div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group"><label data-lang="lbl_batch_qty">Batch Inflow Quantity</label><input type="number" class="form-control" id="pch-qty" required min="1"></div>
+            <div class="form-group"><label data-lang="lbl_act_cost">Actual Unit Procurement Cost</label><input type="number" class="form-control" id="pch-cost" required step="0.01"></div>
+          </div>
+          <button type="submit" class="btn" data-lang="btn_commit_proc"><i class="fa-solid fa-download"></i> Commit Procurement Inflow</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="view-reports" class="view-pane">
+      <h2 data-lang="rep_title"><i class="fa-solid fa-file-invoice"></i> Financial Analytics Center</h2>
+      <div class="grid-2" style="background:#fff; padding:1.5rem; border-radius:12px; border:1px solid var(--gray-border);">
+        <div>
+          <h3 data-lang="rep_monthly_gen">Monthly Performance Generator</h3><br>
+          <div class="grid-2">
+            <input type="number" class="form-control" id="rep-m-year" value="2026">
+            <select class="form-control" id="rep-m-month">
+              <option value="1" data-lang="m_jan">January</option><option value="2" data-lang="m_feb">February</option><option value="3" data-lang="m_mar">March</option>
+              <option value="4" data-lang="m_apr">April</option><option value="5" data-lang="m_may">May</option><option value="6" data-lang="m_jun" selected>June</option>
+              <option value="7" data-lang="m_jul">July</option><option value="8" data-lang="m_aug">August</option><option value="9" data-lang="m_sep">September</option>
+              <option value="10" data-lang="m_oct">October</option><option value="11" data-lang="m_nov">November</option><option value="12" data-lang="m_dec">December</option>
+            </select>
+          </div><br>
+          <button class="btn" onclick="runReport('monthly', false)" data-lang="btn_view_rep"><i class="fa-solid fa-chart-bar"></i> View Report</button>
+          <button class="btn btn-danger" onclick="runReport('monthly', true)" data-lang="btn_export_sheet"><i class="fa-solid fa-file-excel"></i> Export Sheet</button>
+        </div>
+        <div>
+          <h3 data-lang="rep_annual_gen">Annual Audit Matrix Generator</h3><br>
+          <input type="number" class="form-control" id="rep-y-year" value="2026"><br>
+          <button class="btn" onclick="runReport('yearly', false)" data-lang="btn_view_rep"><i class="fa-solid fa-chart-line"></i> View Report</button>
+          <button class="btn btn-danger" onclick="runReport('yearly', true)" data-lang="btn_export_sheet"><i class="fa-solid fa-file-excel"></i> Export Sheet</button>
+        </div>
+      </div>
+      <div class="report-card" id="report-output-card" style="display:none; flex-direction:column; gap:1rem;">
+        <h3 id="report-output-title" style="font-family:var(--font-brand); color:var(--primary);" data-lang="rep_sum_matrix">Summary Matrix</h3>
+        <div class="metrics-grid" style="margin-bottom:0;">
+          <div class="metric-card"><div class="metric-info"><h3 data-lang="rep_gross_rev">Gross Generated Revenue</h3><p id="rep-out-rev">PKR 0.00</p></div></div>
+          <div class="metric-card"><div class="metric-info"><h3 data-lang="rep_units_shifted">Units Shifted Outflow</h3><p id="rep-out-sold">0 Units</p></div></div>
+          <div class="metric-card"><div class="metric-info"><h3 data-lang="rep_agg_markdowns">Aggregated Markdowns</h3><p id="rep-out-disc">PKR 0.00</p></div></div>
+        </div>
+        <h4 data-lang="rep_top_assets">Top Velocity Scaled Assets</h4>
+        <ul id="rep-out-ranking" style="padding-left:1.5rem; font-size:1rem; line-height:1.6;"></ul>
+      </div>
+    </div>
+
+    <div id="view-settings" class="view-pane">
+      <h2 data-lang="set_title"><i class="fa-solid fa-sliders"></i> Global Architecture Configurations</h2>
+      <div class="modal-content" style="box-shadow:none; padding:0; max-width:600px;">
+        <form id="settings-form" onsubmit="submitSettings(event)">
+          <div class="form-group"><label data-lang="lbl_ent_name">Enterprise Legal Structure Name</label><input type="text" class="form-control" id="set-shop-name" required></div>
+          <div class="form-group"><label data-lang="lbl_base_muni">Base Operations Municipality / City</label><input type="text" class="form-control" id="set-shop-city" required></div>
+          <div class="form-group"><label data-lang="lbl_corp_help">Corporate Helpline Contact Link</label><input type="text" class="form-control" id="set-shop-phone" required></div>
+          <div class="grid-2">
+            <div class="form-group"><label data-lang="lbl_acc_ledger">Accounting Ledger Currency Index</label><input type="text" class="form-control" id="set-currency" required></div>
+            <div class="form-group"><label data-lang="lbl_crit_stock">Critical Stock Level Alert Minimum</label><input type="number" class="form-control" id="set-stock-alert" required></div>
+          </div>
+          <button type="submit" class="btn" data-lang="btn_sync_settings"><i class="fa-solid fa-floppy-disk"></i> Synchronize Settings Profile</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="product-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header"><h3 id="product-modal-title" data-lang="mdl_append_sku">Append SKU Matrix</h3><i class="fa-solid fa-times modal-close" onclick="closeModal('product-modal')"></i></div>
+      <form id="product-form" onsubmit="submitProduct(event)">
+        <input type="hidden" id="prod-id">
+        <div class="form-group"><label data-lang="lbl_barcode_matrix">Barcode Matrix</label><input type="text" class="form-control" id="prod-barcode" placeholder="Scan hardware barcode identifier" data-lang-placeholder="ph_barcode_scan"></div>
+        <div class="form-group"><label data-lang="lbl_prod_desc_name">Product Designator Description Name</label><input type="text" class="form-control" id="prod-name" required></div>
+        <div class="grid-2">
+          <div class="form-group"><label data-lang="lbl_cat_grp">Category Group</label><input type="text" class="form-control" id="prod-category" placeholder="Grouping Class" data-lang-placeholder="ph_grouping_class"></div>
+          <div class="form-group"><label data-lang="lbl_scale_unit">Scale Unit Identifier</label><input type="text" class="form-control" id="prod-unit" placeholder="Pcs/Kg/Box" value="Units"></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label data-lang="lbl_capital_purch">Capital Purchase Price</label><input type="number" class="form-control" id="prod-cost" required step="0.01"></div>
+          <div class="form-group"><label data-lang="lbl_market_selling">Market Consumer Selling Price</label><input type="number" class="form-control" id="prod-price" required step="0.01"></div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group" id="prod-qty-group"><label data-lang="lbl_open_stock">Opening Initial Stock Inflow</label><input type="number" class="form-control" id="prod-qty" value="0"></div>
+          <div class="form-group"><label data-lang="lbl_sys_min_bound">System Minimum Notification Boundary</label><input type="number" class="form-control" id="prod-alert" value="10"></div>
+        </div><br>
+        <button type="submit" class="btn" style="width:100%; justify-content:center;" data-lang="btn_save_sku">Save SKU Parameters</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="edit-sale-modal" class="modal">
+    <div class="modal-content" style="max-width:600px;">
+      <div class="modal-header"><h3 data-lang="mdl_force_adjust">Administrative Force Bill Adjustments</h3><i class="fa-solid fa-times modal-close" onclick="closeModal('edit-sale-modal')"></i></div>
+      <div class="form-group"><label data-lang="lbl_mod_customer">Modify Customer Descriptor</label><input type="text" class="form-control" id="edit-sale-customer"></div>
+      <input type="hidden" id="edit-sale-id">
+      <div style="max-height:240px; overflow-y:auto; margin-bottom:1rem;" id="edit-sale-items-container"></div>
+      <button class="btn" style="width:100%; justify-content:center;" onclick="commitAdministrativeSaleAdjustment()" data-lang="btn_push_override"><i class="fa-solid fa-shield-halved"></i> Push Override Force Changes</button>
+    </div>
+  </div>
+
+  <div id="loader-overlay"><div class="spinner"></div></div>
+  <div id="toast"></div>
+
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw0CxY0ogBY6hg3fvLHwE1LbeXioNxTz3-itjNJ4u16sTA8Yh7pv5tMPk0eGT0Z0UAY/exec"; // Paste your deployed Web App URL here
+    let localInventory = [], localSales = [], activeSettings = {};
+    let currentLang = "en";
+
+    const langData = {
+      en: {
+        nav_dashboard: '<i class="fa-solid fa-chart-pie"></i>Dashboard',
+        nav_inventory: '<i class="fa-solid fa-boxes-stacked"></i>Inventory Engine',
+        nav_sales: '<i class="fa-solid fa-history"></i>Sales Ledger',
+        nav_purchases: '<i class="fa-solid fa-truck-ramp-box"></i>Procurement',
+        nav_reports: '<i class="fa-solid fa-file-invoice"></i>Analytics Hub',
+        nav_settings: '<i class="fa-solid fa-sliders"></i>System Config',
+        sidebar_footer: 'ADMIN EXECUTIVE PANEL',
+        dash_title: '<i class="fa-solid fa-chart-pie"></i> Executive Overview',
+        card_sku: 'Total SKU Variants',
+        card_valuation: 'Stock Capital Valuation',
+        card_revenue: 'Today Sales Revenue',
+        card_invoices: 'Invoices Issued Today',
+        dash_alerts_title: '<i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> Stock Depletion Alerts',
+        th_prod_id: 'Product ID', th_desc: 'Product Description', th_curr_stock: 'Current Stock', th_threshold: 'Threshold Limit',
+        inv_title: '<i class="fa-solid fa-boxes-stacked"></i> Core Product Inventory Matrix',
+        ph_filter_inv: 'Filter inventory...',
+        btn_append_sku: '<i class="fa-solid fa-plus"></i> Append New SKU Record',
+        th_sku_id: 'SKU ID', th_barcode: 'Barcode', th_prod_name: 'Product Name', th_cat: 'Category', th_purchase: 'Purchase', th_selling: 'Selling', th_stock: 'Stock', th_status: 'Status', th_actions: 'Actions',
+        sales_title: '<i class="fa-solid fa-history"></i> Global Sales Transaction Log',
+        ph_search_sales: 'Search sales...',
+        th_inv_id: 'Invoice ID', th_timestamp: 'Timestamp', th_client: 'Client Descriptor', th_items: 'Items Bundle', th_grand_cost: 'Grand Cost', th_mgmt_actions: 'Management Actions',
+        proc_title: '<i class="fa-solid fa-truck-ramp-box"></i> Stock Procurement Intake',
+        lbl_target_sku: 'Select Target SKU Product', lbl_supplier: 'Supplier Channel / Vendor', ph_vendor_prof: 'Vendor Profile',
+        lbl_batch_qty: 'Batch Inflow Quantity', lbl_act_cost: 'Actual Unit Procurement Cost',
+        btn_commit_proc: '<i class="fa-solid fa-download"></i> Commit Procurement Inflow',
+        rep_title: '<i class="fa-solid fa-file-invoice"></i> Financial Analytics Center',
+        rep_monthly_gen: 'Monthly Performance Generator',
+        m_jan: 'January', m_feb: 'February', m_mar: 'March', m_apr: 'April', m_may: 'May', m_jun: 'June', m_jul: 'July', m_aug: 'August', m_sep: 'September', m_oct: 'October', m_nov: 'November', m_dec: 'December',
+        btn_view_rep: '<i class="fa-solid fa-chart-bar"></i> View Report', btn_export_sheet: '<i class="fa-solid fa-file-excel"></i> Export Sheet',
+        rep_annual_gen: 'Annual Audit Matrix Generator', rep_sum_matrix: 'Summary Matrix',
+        rep_gross_rev: 'Gross Generated Revenue', rep_units_shifted: 'Units Shifted Outflow', rep_agg_markdowns: 'Aggregated Markdowns', rep_top_assets: 'Top Velocity Scaled Assets',
+        set_title: '<i class="fa-solid fa-sliders"></i> Global Architecture Configurations',
+        lbl_ent_name: 'Enterprise Legal Structure Name', lbl_base_muni: 'Base Operations Municipality / City', lbl_corp_help: 'Corporate Helpline Contact Link',
+        lbl_acc_ledger: 'Accounting Ledger Currency Index', lbl_crit_stock: 'Critical Stock Level Alert Minimum',
+        btn_sync_settings: '<i class="fa-solid fa-floppy-disk"></i> Synchronize Settings Profile',
+        mdl_append_sku: 'Append SKU Matrix', lbl_barcode_matrix: 'Barcode Matrix', ph_barcode_scan: 'Scan hardware barcode identifier',
+        lbl_prod_desc_name: 'Product Designator Description Name', lbl_cat_grp: 'Category Group', ph_grouping_class: 'Grouping Class',
+        lbl_scale_unit: 'Scale Unit Identifier', lbl_capital_purch: 'Capital Purchase Price', lbl_market_selling: 'Market Consumer Selling Price',
+        lbl_open_stock: 'Opening Initial Stock Inflow', lbl_sys_min_bound: 'System Minimum Notification Boundary',
+        btn_save_sku: 'Save SKU Parameters', mdl_force_adjust: 'Administrative Force Bill Adjustments',
+        lbl_mod_customer: 'Modify Customer Descriptor', btn_push_override: '<i class="fa-solid fa-shield-halved"></i> Push Override Force Changes',
+        lbl_remaining: 'Remaining', lbl_low_stock: 'Low Stock', lbl_healthy: 'Healthy', lbl_force_edit: '<i class="fa-solid fa-gavel"></i> Force Edit', lbl_void: '<i class="fa-solid fa-ban"></i> Void', lbl_no_sales: 'No sales tracks recorded.', lbl_units: 'Units'
+      },
+      ur: {
+        nav_dashboard: '<i class="fa-solid fa-chart-pie"></i> ڈیش بورڈ',
+        nav_inventory: '<i class="fa-solid fa-boxes-stacked"></i> انوینٹری انجن',
+        nav_sales: '<i class="fa-solid fa-history"></i> سیلز لیجر',
+        nav_purchases: '<i class="fa-solid fa-truck-ramp-box"></i> پروکیورمنٹ',
+        nav_reports: '<i class="fa-solid fa-file-invoice"></i> اینالیٹکس ہب',
+        nav_settings: '<i class="fa-solid fa-sliders"></i> سسٹم کنفیگ',
+        sidebar_footer: 'ایڈمن ایگزیکٹو پینل',
+        dash_title: '<i class="fa-solid fa-chart-pie"></i> ایگزیکٹو جائزہ',
+        card_sku: 'کل SKU ورائٹی',
+        card_valuation: 'اسٹاک کیپٹل مالیت',
+        card_revenue: 'آج کی سیلز آمدنی',
+        card_invoices: 'آج جاری کردہ انوائسز',
+        dash_alerts_title: '<i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> اسٹاک میں کمی کے الرٹس',
+        th_prod_id: 'پروڈکٹ ID', th_desc: 'پروڈکٹ کی تفصیل', th_curr_stock: 'موجودہ اسٹاک', th_threshold: 'تھریشولڈ حد',
+        inv_title: '<i class="fa-solid fa-boxes-stacked"></i> کور پروڈکٹ انوینٹری میٹرکس',
+        ph_filter_inv: 'انوینٹری فلٹر کریں...',
+        btn_append_sku: '<i class="fa-solid fa-plus"></i> نیا SKU ریکارڈ شامل کریں',
+        th_sku_id: 'SKU ID', th_barcode: 'بارکوڈ', th_prod_name: 'پروڈکٹ کا نام', th_cat: 'کیٹیگری', th_purchase: 'خریداری قیمت', th_selling: 'فروخت قیمت', th_stock: 'اسٹاک', th_status: 'اسٹیٹس', th_actions: 'ایکشنز',
+        sales_title: '<i class="fa-solid fa-history"></i> گلوبل سیلز ٹرانزیکشن لاگ',
+        ph_search_sales: 'سیلز تلاش کریں...',
+        th_inv_id: 'انوائس ID', th_timestamp: 'وقت اور تاریخ', th_client: 'کسٹمر کی تفصیل', th_items: 'آئٹمز بنڈل', th_grand_cost: 'کل قیمت', th_mgmt_actions: 'انتظامی ایکشنز',
+        proc_title: '<i class="fa-solid fa-truck-ramp-box"></i> اسٹاک پروکیورمنٹ انٹیک',
+        lbl_target_sku: 'ٹارگٹ SKU پروڈکٹ منتخب کریں', lbl_supplier: 'سپلائر چینل / وینڈر', ph_vendor_prof: 'وینڈر پروفائل',
+        lbl_batch_qty: 'بیچ کی مقدار', lbl_act_cost: 'اصل یونٹ پروکیورمنٹ لاگت',
+        btn_commit_proc: '<i class="fa-solid fa-download"></i> پروکیورمنٹ ان فلو محفوظ کریں',
+        rep_title: '<i class="fa-solid fa-file-invoice"></i> فنانشل اینالیٹکس سینٹر',
+        rep_monthly_gen: 'ماہانہ کارکردگی جنریٹر',
+        m_jan: 'جنوری', m_feb: 'فروری', m_mar: 'مارچ', m_apr: 'اپریل', m_may: 'مئی', m_jun: 'جون', m_jul: 'جولائی', m_aug: 'اگست', m_sep: 'ستمبر', m_oct: 'اکتوبر', m_nov: 'نومبر', m_dec: 'دسمبر',
+        btn_view_rep: '<i class="fa-solid fa-chart-bar"></i> رپورٹ دیکھیں', btn_export_sheet: '<i class="fa-solid fa-file-excel"></i> شیٹ ایکسپورٹ کریں',
+        rep_annual_gen: 'سالانہ آڈٹ میٹرکس جنریٹر', rep_sum_matrix: 'خلاصہ میٹرکس',
+        rep_gross_rev: 'مجموعی پیدا کردہ آمدنی', rep_units_shifted: 'فروخت شدہ یونٹس', rep_agg_markdowns: 'مجموعی ڈسکاؤنٹ', rep_top_assets: 'سب سے زیادہ فروخت ہونے والے آئٹمز',
+        set_title: '<i class="fa-solid fa-sliders"></i> عالمی آرکیٹیکچر کنفیگریشنز',
+        lbl_ent_name: 'ادارے کا قانونی نام', lbl_base_muni: 'بیس آپریشنز بلدیہ / شہر', lbl_corp_help: 'کارپوریٹ ہیلپ لائن رابطہ لنک',
+        lbl_acc_ledger: 'اکاؤنٹنگ لیجر کرنسی انڈیکس', lbl_crit_stock: 'کم از کم اسٹاک الرٹ کی حد',
+        btn_sync_settings: '<i class="fa-solid fa-floppy-disk"></i> سیٹنگز پروفائل سنکرونائز کریں',
+        mdl_append_sku: 'SKU میٹرکس شامل کریں', lbl_barcode_matrix: 'بارکوڈ میٹرکس', ph_barcode_scan: 'ہارڈ ویئر بارکوڈ شناختی کوڈ اسکین کریں',
+        lbl_prod_desc_name: 'پروڈکٹ ڈیزائنیٹر کی تفصیل کا نام', lbl_cat_grp: 'کیٹیگری گروپ', ph_grouping_class: 'گروپنگ کلاس',
+        lbl_scale_unit: 'اسکیل یونٹ آئیڈینٹی فائر', lbl_capital_purch: 'سرمایہ کاری قیمت خرید', lbl_market_selling: 'مارکیٹ کنزیومر قیمت فروخت',
+        lbl_open_stock: 'ابتدائی اسٹاک ان فلو', lbl_sys_min_bound: 'سسٹم کم از کم نوٹیفکیشن کی حد',
+        btn_save_sku: 'SKU پیرامیٹرز محفوظ کریں', mdl_force_adjust: 'انتظامی زبردستی بل ایڈجسٹمنٹس',
+        lbl_mod_customer: 'کسٹمر کی تفصیل تبدیل کریں', btn_push_override: '<i class="fa-solid fa-shield-halved"></i> زبردستی تبدیلیاں لاگو کریں',
+        lbl_remaining: 'باقی ہے', lbl_low_stock: 'اسٹاک کم ہے', lbl_healthy: 'بہتر اسٹاک', lbl_force_edit: '<i class="fa-solid fa-gavel"></i> زبردستی ایڈٹ', lbl_void: '<i class="fa-solid fa-ban"></i> منسوخ', lbl_no_sales: 'کوئی سیلز ریکارڈ نہیں ملا۔', lbl_units: 'یونٹس'
+      }
+    };
+
+    function toggleLanguage(lang) {
+      currentLang = lang;
+      if (lang === "ur") {
+        document.body.classList.add("rtl");
+      } else {
+        document.body.classList.remove("rtl");
+      }
+
+      // Update static text with data-lang attribute
+      document.querySelectorAll("[data-lang]").forEach(el => {
+        const key = el.getAttribute("data-lang");
+        if (langData[lang][key]) {
+          // Keep structure if it has icons, only update text nodes or innerHTML safely
+          if (el.querySelector('i')) {
+            const icon = el.querySelector('i').outerHTML;
+            const plainText = langData[lang][key].replace(/<i[^>]*><\/i>/, '');
+            el.innerHTML = icon + " " + plainText;
+          } else {
+            el.innerHTML = langData[lang][key];
+          }
+        }
+      });
+
+      // Update place holders
+      document.querySelectorAll("[data-lang-placeholder]").forEach(el => {
+        const key = el.getAttribute("data-lang-placeholder");
+        if (langData[lang][key]) {
+          el.placeholder = langData[lang][key];
+        }
+      });
+
+      // Rerender lists to apply language change dynamically
+      renderInventory();
+      renderSalesLedger();
+    }
+
+    window.addEventListener("DOMContentLoaded", fetchCoreData);
+
+    function showLoader(v) { document.getElementById("loader-overlay").style.display = v ? "flex" : "none"; }
+    function showToast(msg, type="success") {
+      const t = document.getElementById("toast"); t.innerText = msg;
+      t.style.background = type === "error" ? "#b7094c" : "#1b4332";
+      t.style.display = "block"; setTimeout(() => { t.style.display = "none"; }, 3500);
+    }
+    function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+    function switchView(viewId) {
+      document.querySelectorAll(".view-pane").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
+      document.getElementById("view-" + viewId).classList.add("active");
+      event.currentTarget.classList.add("active");
+    }
+
+    function cloudPost(action, data = {}, extraParams = {}) {
+      return fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action, data, role: "admin", ...extraParams })
+      }).then(res => res.json()).catch(err => { showLoader(false); showToast("Sync Engine Failed.", "error"); throw err; });
+    }
+
+    function fetchCoreData() {
+      showLoader(true);
+      Promise.all([cloudPost("getSettings"), cloudPost("getInventory"), cloudPost("getSalesHistory"), cloudPost("getDashboard")])
+      .then(([settings, inv, sales, dash]) => {
+        showLoader(false);
+        activeSettings = settings; localInventory = inv; localSales = sales;
+        document.getElementById("shop-name-banner").innerText = (settings.shop_name || "The Lilly Shop") + (currentLang === "ur" ? " (ایڈمن ایگزیکٹو موڈ)" : " (Admin Executive Mode)");
+        renderDashboard(dash); renderInventory(); renderSalesLedger(); populateProcurementDropdowns(); loadSettingsForm();
+      });
+    }
+
+    function renderDashboard(d) {
+      document.getElementById("dash-variants").innerText = d.totalProducts;
+      document.getElementById("dash-valuation").innerText = activeSettings.currency + " " + d.stockValuation.toFixed(2);
+      document.getElementById("dash-revenue").innerText = activeSettings.currency + " " + d.todayRevenue.toFixed(2);
+      document.getElementById("dash-invoices").innerText = d.invoiceCount;
+      const tbody = document.getElementById("dash-lowstock-tbody"); tbody.innerHTML = "";
+      d.lowStock.forEach(item => {
+        const remainingStr = currentLang === "ur" ? `${item.qty} ${langData.ur.lbl_remaining}` : `${item.qty} Remaining`;
+        tbody.innerHTML += `<tr><td><span class="mono">${item.id}</span></td><td>${item.name}</td><td><span class="alert-badge">${remainingStr}</span></td><td class="mono">${item.min}</td></tr>`;
+      });
+    }
+
+    function renderInventory() {
+      const tbody = document.getElementById("inv-table-body"); tbody.innerHTML = "";
+      localInventory.forEach(p => {
+        const isLow = p.quantity <= p.minAlert;
+        const statusText = isLow ? langData[currentLang].lbl_low_stock : langData[currentLang].lbl_healthy;
+        tbody.innerHTML += `
+          <tr>
+            <td class="mono font-weight-bold">${p.id}</td>
+            <td class="mono">${p.barcode || '-'}</td>
+            <td><strong>${p.name}</strong></td>
+            <td>${p.category || '-'}</td>
+            <td class="mono">${p.purchasePrice.toFixed(2)}</td>
+            <td class="mono">${p.sellingPrice.toFixed(2)}</td>
+            <td class="mono">${p.quantity}</td>
+            <td><span class="${isLow ? 'alert-badge' : ''}">${statusText}</span></td>
+            <td>
+              <button class="btn btn-sm" onclick="openProductModal('${p.id}')"><i class="fa-solid fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deleteProductForce('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filterInventory() {
+      const q = document.getElementById("inv-search").value.toLowerCase().trim();
+      document.querySelectorAll("#inv-table-body tr").forEach((row, idx) => {
+        const item = localInventory[idx];
+        row.style.display = (item.name.toLowerCase().includes(q) || item.barcode.includes(q) || item.id.toLowerCase().includes(q)) ? "table-row" : "none";
+      });
+    }
+
+    function openProductModal(id = "") {
+      const form = document.getElementById("product-form"); form.reset();
+      if(id) {
+        document.getElementById("product-modal-title").innerText = (currentLang === "ur" ? "SKU انٹری تبدیل کریں: " : "Modify SKU Entry: ") + id;
+        document.getElementById("prod-id").value = id;
+        document.getElementById("prod-qty-group").style.display = "none";
+        const p = localInventory.find(item => item.id === id);
+        document.getElementById("prod-barcode").value = p.barcode;
+        document.getElementById("prod-name").value = p.name;
+        document.getElementById("prod-category").value = p.category;
+        document.getElementById("prod-unit").value = p.unit;
+        document.getElementById("prod-cost").value = p.purchasePrice;
+        document.getElementById("prod-price").value = p.sellingPrice;
+        document.getElementById("prod-alert").value = p.minAlert;
+      } else {
+        document.getElementById("product-modal-title").innerText = langData[currentLang].mdl_append_sku;
+        document.getElementById("prod-id").value = "";
+        document.getElementById("prod-qty-group").style.display = "block";
+      }
+      document.getElementById("product-modal").style.display = "flex";
+    }
+
+    function submitProduct(e) {
+      e.preventDefault();
+      const id = document.getElementById("prod-id").value;
+      const payload = {
+        barcode: document.getElementById("prod-barcode").value,
+        name: document.getElementById("prod-name").value,
+        category: document.getElementById("prod-category").value,
+        unit: document.getElementById("prod-unit").value,
+        purchasePrice: document.getElementById("prod-cost").value,
+        sellingPrice: document.getElementById("prod-price").value,
+        quantity: document.getElementById("prod-qty").value || 0,
+        minAlert: document.getElementById("prod-alert").value
+      };
+      showLoader(true);
+      const action = id ? "updateProduct" : "addProduct";
+      cloudPost(action, JSON.stringify(payload), id ? { id } : {}).then(res => {
+        if(res.success) { showToast(res.message); closeModal("product-modal"); fetchCoreData(); }
+        else showToast(res.message, "error");
+      });
+    }
+
+    function deleteProductForce(id) {
+      const confirmMsg = currentLang === "ur" ? `وارننگ: SKU انٹری ${id} کو مستقل طور پر حذف کرنے سے اس کا تمام ریکارڈ ختم ہو جائے گا۔` : `Warning: Deleting SKU entry ${id} permanently will wipe its trace.`;
+      if(!confirm(confirmMsg)) return;
+      showLoader(true);
+      cloudPost("deleteProduct", {}, { id }).then(res => { fetchCoreData(); showToast(res.message); });
+    }
+
+    function renderSalesLedger() {
+      const tbody = document.getElementById("sales-table-body"); tbody.innerHTML = "";
+      localSales.forEach(s => {
+        let bundle = s.items.map(i => `${i.name} (${i.qty})`).join(", ");
+        tbody.innerHTML += `
+          <tr>
+            <td class="mono font-weight-bold" style="color:var(--primary);">${s.saleId}</td>
+            <td>${s.date} <span style="font-size:0.8rem; color:#6c757d;">${s.time}</span></td>
+            <td><strong>${s.customer}</strong></td>
+            <td style="max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${bundle}</td>
+            <td class="mono font-weight-bold">${activeSettings.currency} ${s.grandTotal.toFixed(2)}</td>
+            <td>
+              <button class="btn btn-sm" onclick="openAdministrativeSaleEdit('${s.saleId}')">${langData[currentLang].lbl_force_edit}</button>
+              <button class="btn btn-sm btn-danger" onclick="voidInvoiceForce('${s.saleId}')">${langData[currentLang].lbl_void}</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filterSales() {
+      const q = document.getElementById("sales-search").value.toLowerCase().trim();
+      document.querySelectorAll("#sales-table-body tr").forEach((row, i) => {
+        const s = localSales[i];
+        row.style.display = (s.saleId.toLowerCase().includes(q) || s.customer.toLowerCase().includes(q)) ? "table-row" : "none";
+      });
+    }
+
+    function openAdministrativeSaleEdit(saleId) {
+      const sale = localSales.find(s => s.saleId === saleId); if(!sale) return;
+      document.getElementById("edit-sale-id").value = saleId;
+      document.getElementById("edit-sale-customer").value = sale.customer;
+      const container = document.getElementById("edit-sale-items-container"); container.innerHTML = "";
+      
+      sale.items.forEach(it => {
+        container.innerHTML += `
+          <div style="background:var(--gray-light); padding:0.75rem; border:1px solid var(--gray-border); border-radius:8px; margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;" class="edit-sale-item-row" data-id="${it.id}">
+            <span style="font-weight:600; font-size:0.9rem; max-width:200px;">${it.name}</span>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <div>${currentLang === "ur" ? "تعداد" : "Qty"}: <input type="number" value="${it.qty}" style="width:60px; padding:0.25rem;" class="edit-item-qty" min="0"></div>
+              <div>${currentLang === "ur" ? "ڈسکاؤنٹ" : "Disc"}: <input type="number" value="${it.discount}" style="width:70px; padding:0.25rem;" class="edit-item-disc"></div>
+            </div>
+          </div>
+        `;
+      });
+      document.getElementById("edit-sale-modal").style.display = "flex";
+    }
+
+    function commitAdministrativeSaleAdjustment() {
+      const saleId = document.getElementById("edit-sale-id").value;
+      const customerName = document.getElementById("edit-sale-customer").value.trim();
+      const updatedItems = [];
+      document.querySelectorAll(".edit-sale-item-row").forEach(row => {
+        updatedItems.push({
+          id: row.getAttribute("data-id"),
+          qty: Number(row.querySelector(".edit-item-qty").value),
+          discount: Number(row.querySelector(".edit-item-disc").value)
+        });
+      });
+      showLoader(true);
+      cloudPost("updateSale", {}, { saleId, updatedItemsStr: JSON.stringify(updatedItems), customerName }).then(res => {
+        showLoader(false); if(res.success) { showToast(res.message); closeModal("edit-sale-modal"); fetchCoreData(); }
+        else showToast(res.message, "error");
+      });
+    }
+
+    function voidInvoiceForce(saleId) {
+      const confirmMsg = currentLang === "ur" ? `کیا آپ واقعی انوائس ${saleId} کو منسوخ کرنا چاہتے ہیں؟ اس سے اسٹاک واپس ہو جائے گا۔` : `Are you sure you want to completely VOID invoice ${saleId}? This restores item stocks.`;
+      if(!confirm(confirmMsg)) return;
+      showLoader(true);
+      cloudPost("voidSale", {}, { saleId }).then(res => { if(res.success) { showToast(res.message); fetchCoreData(); } else showToast(res.message, "error"); });
+    }
+
+    function populateProcurementDropdowns() {
+      const select = document.getElementById("pch-product-id"); select.innerHTML = "";
+      localInventory.forEach(p => { select.innerHTML += `<option value="${p.id}">${p.id} - ${p.name}</option>`; });
+    }
+
+    function submitPurchase(e) {
+      e.preventDefault();
+      const pid = document.getElementById("pch-product-id").value;
+      const target = localInventory.find(p => p.id === pid);
+      const payload = { productId: pid, productName: target.name, supplier: document.getElementById("pch-supplier").value, qty: document.getElementById("pch-qty").value, unitCost: document.getElementById("pch-cost").value };
+      showLoader(true);
+      cloudPost("recordPurchase", JSON.stringify(payload)).then(res => { if(res.success){ showToast(res.message); document.getElementById("purchase-form").reset(); fetchCoreData(); } });
+    }
+
+    function runReport(type, exportSheet) {
+      showLoader(true);
+      if(type === 'monthly') {
+        const year = document.getElementById("rep-m-year").value, month = document.getElementById("rep-m-month").value;
+        if(exportSheet) { cloudPost("generateMonthlySheet", {}, { year, month }).then(res => { showLoader(false); showToast(res.message); }); }
+        else { cloudPost("getMonthlySalesReport", {}, { year, month }).then(res => { showLoader(false); displayAnalyticsCard((currentLang === "ur" ? "ماہانہ تجزیہ خلاصہ: " : "Monthly Analytics Summary: ")+year+"-"+month, res); }); }
+      } else {
+        const year = document.getElementById("rep-y-year").value;
+        if(exportSheet) { cloudPost("generateYearlySheet", {}, { year }).then(res => { showLoader(false); showToast(res.message); }); }
+        else { cloudPost("getYearlySalesReport", {}, { year }).then(res => { showLoader(false); displayAnalyticsCard((currentLang === "ur" ? "سالانہ مالیاتی خلاصہ: " : "Annual Financial Summary: ")+year, res); }); }
+      }
+    }
+
+    function displayAnalyticsCard(title, rep) {
+      document.getElementById("report-output-title").innerText = title;
+      document.getElementById("rep-out-rev").innerText = "PKR " + rep.revenue.toFixed(2);
+      const unitStr = currentLang === "ur" ? ` ${langData.ur.lbl_units}` : " Units";
+      document.getElementById("rep-out-sold").innerText = rep.sold + unitStr;
+      document.getElementById("rep-out-disc").innerText = "PKR " + rep.discount.toFixed(2);
+      let list = ""; 
+      const movedStr = currentLang === "ur" ? "یونٹس فروخت ہوئے" : "units moved";
+      rep.ranking.forEach(i => { list += `<li><strong>${i.name}</strong>: ${i.qty} ${movedStr}</li>`; });
+      document.getElementById("rep-out-ranking").innerHTML = list || `<li>${langData[currentLang].lbl_no_sales}</li>`;
+      document.getElementById("report-output-card").style.display = "flex";
+    }
+
+    function loadSettingsForm() {
+      document.getElementById("set-shop-name").value = activeSettings.shop_name || "";
+      document.getElementById("set-shop-city").value = activeSettings.shop_city || "";
+      document.getElementById("set-shop-phone").value = activeSettings.shop_phone || "";
+      document.getElementById("set-currency").value = activeSettings.currency || "PKR";
+      document.getElementById("set-stock-alert").value = activeSettings.low_stock_alert || "10";
+    }
+
+    function submitSettings(e) {
+      e.preventDefault();
+      const payload = { shop_name: document.getElementById("set-shop-name").value, shop_city: document.getElementById("set-shop-city").value, shop_phone: document.getElementById("set-shop-phone").value, currency: document.getElementById("set-currency").value, low_stock_alert: document.getElementById("set-stock-alert").value };
+      showLoader(true);
+      cloudPost("updateSettings", JSON.stringify(payload)).then(res => { if(res.success) { showToast(res.message); fetchCoreData(); } });
+    }
+  </script>
+</body>
+</html>
